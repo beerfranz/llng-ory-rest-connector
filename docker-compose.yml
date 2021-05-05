@@ -1,0 +1,118 @@
+version: '3.7'
+
+services:
+  # kratos-migrate:
+  #   image: oryd/kratos:v0.5.5-alpha.1
+  #   volumes:
+  #     - ./cfg:/etc/config/kratos
+  #   command: -c /etc/config/kratos/kratos.yml migrate sql -e --yes
+  #   networks:
+  #     - llng-ory-rest-connector
+
+  kratos:
+    image: oryd/kratos:v0.5.5-alpha.1
+    environment:
+      - LOG_LEVEL=trace
+    ports:
+      - '4433:4433' # public
+      - '4434:4434' # admin
+    command: serve -c /etc/config/kratos/kratos.yml --dev
+    volumes:
+      - ./cfg/kratos:/etc/config/kratos
+    networks:
+      llng-ory-rest-connector:
+        aliases:
+          - kratos.local
+
+  kratos-db:
+    image: postgres:9.6
+    environment:
+      - POSTGRES_USER=kratos
+      - POSTGRES_PASSWORD=secret
+      - POSTGRES_DB=kratos
+    networks:
+      - llng-ory-rest-connector
+
+  llng-ory-rest-connector:
+    image: node:12.7-alpine
+    user: node
+    working_dir: /home/node/app
+    volumes:
+      - ./src:/home/node/app
+    ports:
+      - '4400:4400'
+    environment:
+      - NODE_ENV=development
+      - PORT=4400
+      - LOG_LEVEL=debug
+      - KRATOS=http://kratos.local:4433
+      - KETO=http://keto.local:4466
+    command: npm run start-dev
+    networks:
+      - llng-ory-rest-connector
+    
+  kratos-selfservice-ui-node:
+    image: oryd/kratos-selfservice-ui-node:v0.5.0-alpha.1
+    ports:
+      - "4455:4455"
+    environment:
+      - KRATOS_PUBLIC_URL=http://kratos.local:4433/
+      - KRATOS_ADMIN_URL=http://kratos.local:4434/
+      - PORT=4455
+      - SECURITY_MODE=
+      - KRATOS_BROWSER_URL=http://kratos.local:4433/
+    networks:
+      - llng-ory-rest-connector
+
+  mailslurper:
+    image: oryd/mailslurper:latest-smtps
+    ports:
+      - '4436:4436'
+      - '4437:4437'
+    networks:
+      - llng-ory-rest-connector
+
+  llng:
+    image: coudot/lemonldap-ng:2.0.7
+    ports:
+      - "80:80"
+    environment:
+      - SSODOMAIN=local
+      - PORTAL_HOSTNAME=auth.local
+      - MANAGER_HOSTNAME=manager.local
+      - HANDLER_HOSTNAME=reload.local
+    networks:
+      - llng-ory-rest-connector
+
+  keto:
+    image: oryd/keto:v0.6.0-alpha.3
+    volumes:
+      - ./cfg/keto:/etc/config/keto
+    command: serve -c /etc/config/keto/keto.yml
+    ports:
+      - "4466:4466"
+      - "4467:4467"
+    networks:
+      llng-ory-rest-connector:
+        aliases:
+          - keto.local
+
+  # keto-migrate:
+  #   image: oryd/keto:v0.6.0-alpha.3
+  #   volumes:
+  #     - ./cfg-keto:/etc/config/keto
+  #   command: -c /etc/config/keto/keto.yml migrate up --yes --all-namespaces
+  #   networks:
+  #     - llng-ory-rest-connector
+
+  keto-db:
+    image: postgres:9.6
+    environment:
+      - POSTGRES_USER=keto
+      - POSTGRES_PASSWORD=secret
+      - POSTGRES_DB=keto
+    networks:
+      - llng-ory-rest-connector
+
+networks:
+  llng-ory-rest-connector:
