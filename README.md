@@ -2,7 +2,7 @@
 
 REST API to connect LemonLDAP::NG (Web SSO) auth backend with Ory Kratos (Cloud native identity infrastructure) & Ory Keto (Permission & role management).
 
-// ICI UN SCHEMA
+![](assets/schema.png)
 
 LemonLDAP::NG require authentication backends to authenticate users. One of the available backends is a REST API.
 
@@ -15,64 +15,32 @@ Ory Keto is a permission & role provider. This service is able to tell what an i
 1. Add in your local DNS configuration the hostnames `kratos.local` & `keto.local`:
 
   ```
-  echo "127.0.0.1   kratos.local keto.local" | sudo tee -a /etc/hosts
+  echo "127.0.0.1   kratos.local keto.local manager.llng.local auth.llng.local reload.llng.local" | sudo tee -a /etc/hosts
   ```
 
-2. Init databases:
+2. Run tests scripts (migrate DB, npm install, run containers, provide test data, and finally run tests)
   ```
-  ./migrate-db.sh
-  ```
-
-3. Run the stack:
-  ```
-  docker-compose up -d
+  ./test.sh
   ```
 
-4. Provide test datas:
-  ```
-  ./private-test-data.sh
-  ```
+**LemonLDAP::NG web UI**
 
+1. Go to `http://manager.llng.local`
 
+2. Type credentials from Kratos user:
+  * Login: admin@youpi.eu
+  * Password: thisIsFake
 
-## LemonLDAP::NG REST Auth Backend
+**User regitration in Kratos**
 
-A REST auth backend must provide this endpoints:
+You can register an user with the selfservice UI deployed with Kratos: http://localhost:4455.
 
-### Authentication
+## Endpoints
 
-HTTP method: POST
+The application **llng-ory-rest-connector** expose this endpoints:
 
-Params: { "user": "$user", "password": "$password" }
-
-Return: { "result": true/false, "info": { "lastname": string, "firstname": string, "grafana-role": string, ...} }
-
-### User information
-
-HTTP method: POST
-
-Params: { "user": "$user" }
-
-Return: { "result": true/false, "info": {} }
-
-### Password confirmation
-
-HTTP method: POST
-
-Params: { "user": "$user", "password": "$password" }
-
-Return: { "result": true/false }
-
-### Change password
-
-HTTP method: POST
-
-Params: { "user": "$user", "password": "$password" }
-
-Return: { "result": true/false }
-
-**To update an user password in Ory Kratos, the current user password is required. This function is not available.**
-
+* `/auth`: authenticate an user with login/password, return the result (true or false) and user infos.
+* `/confirm-password`: authenticate an user with login/password, return the result (true or false).
 
 ## Links
 

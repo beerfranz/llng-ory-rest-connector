@@ -1,13 +1,6 @@
 version: '3.7'
 
 services:
-  # kratos-migrate:
-  #   image: oryd/kratos:v0.5.5-alpha.1
-  #   volumes:
-  #     - ./cfg:/etc/config/kratos
-  #   command: -c /etc/config/kratos/kratos.yml migrate sql -e --yes
-  #   networks:
-  #     - llng-ory-rest-connector
 
   kratos:
     image: oryd/kratos:v0.5.5-alpha.1
@@ -30,6 +23,28 @@ services:
       - POSTGRES_USER=kratos
       - POSTGRES_PASSWORD=secret
       - POSTGRES_DB=kratos
+    networks:
+      - llng-ory-rest-connector
+
+  keto:
+    image: oryd/keto:v0.6.0-alpha.3
+    volumes:
+      - ./cfg/keto:/etc/config/keto
+    command: serve -c /etc/config/keto/keto.yml
+    ports:
+      - "4466:4466"
+      - "4467:4467"
+    networks:
+      llng-ory-rest-connector:
+        aliases:
+          - keto.local
+
+  keto-db:
+    image: postgres:9.6
+    environment:
+      - POSTGRES_USER=keto
+      - POSTGRES_PASSWORD=secret
+      - POSTGRES_DB=keto
     networks:
       - llng-ory-rest-connector
 
@@ -77,40 +92,12 @@ services:
     ports:
       - "80:80"
     environment:
-      - SSODOMAIN=local
-      - PORTAL_HOSTNAME=auth.local
-      - MANAGER_HOSTNAME=manager.local
-      - HANDLER_HOSTNAME=reload.local
-    networks:
-      - llng-ory-rest-connector
-
-  keto:
-    image: oryd/keto:v0.6.0-alpha.3
+      - SSODOMAIN=llng.local
+      - PORTAL_HOSTNAME=auth.llng.local
+      - MANAGER_HOSTNAME=manager.llng.local
+      - HANDLER_HOSTNAME=reload.llng.local
     volumes:
-      - ./cfg/keto:/etc/config/keto
-    command: serve -c /etc/config/keto/keto.yml
-    ports:
-      - "4466:4466"
-      - "4467:4467"
-    networks:
-      llng-ory-rest-connector:
-        aliases:
-          - keto.local
-
-  # keto-migrate:
-  #   image: oryd/keto:v0.6.0-alpha.3
-  #   volumes:
-  #     - ./cfg-keto:/etc/config/keto
-  #   command: -c /etc/config/keto/keto.yml migrate up --yes --all-namespaces
-  #   networks:
-  #     - llng-ory-rest-connector
-
-  keto-db:
-    image: postgres:9.6
-    environment:
-      - POSTGRES_USER=keto
-      - POSTGRES_PASSWORD=secret
-      - POSTGRES_DB=keto
+      - ./cfg/llng:/var/lib/lemonldap-ng/conf
     networks:
       - llng-ory-rest-connector
 
