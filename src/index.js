@@ -15,7 +15,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // Authentication endpoint
 // request: { "user": "$user", "password": "$password" }
-// result: { "result": true/false, "info": { "lastname": string, "firstname": string, "grafana-role": string, ...} }
+// result: { "result": true/false, "info": { "lastname": string, "firstname": string, "acl_xx_yy": string, ...} }
 app.post('/auth', 
   middlewareAuthentication,
   middlewareAuthorization,

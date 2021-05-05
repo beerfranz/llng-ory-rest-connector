@@ -18,6 +18,7 @@ async function authentication (req, res, next) {
     if (authn.status !== 200) {
       // AuthN failed
       logger.info('Failed to authenticate user ', req.body.user);
+      // TODO: use next(error);
       res.status(200).json({ result: false });
     } else {
       // AuthN OK
