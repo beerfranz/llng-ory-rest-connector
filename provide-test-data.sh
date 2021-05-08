@@ -26,4 +26,3 @@ admin_id=$(curl -s -H "Content-Type: application/json" ${flow} \
 
 admin_rights=$(curl -s -X PUT -H "Content-Type: application/json" http://keto.local:4467/relation-tuples \
   -d "{ \"namespace\": \"manager\", \"object\": \"manager\", \"relation\": \"admin\", \"subject\": \"${admin_id}\" }")
-
