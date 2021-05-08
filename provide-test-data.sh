@@ -4,11 +4,11 @@ docker-compose down -v
 
 ./migrate-db.sh
 
-./init.sh
+docker-compose run llng-ory-rest-connector npm install --dev
 
 docker-compose up -d
 
-sleep 5
+sleep 10
 
 echo "Create user i-have-no-acl@gmas.com (password: thisIsFake) without rights"
 flow=$(curl -s http://kratos.local:4433/self-service/registration/api | jq -r .methods.password.config.action)
